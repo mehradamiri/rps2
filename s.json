@@ -1,0 +1,7 @@
+{
+    "win": false,
+    "counter": "name of the item that the user beats in Farsi",
+    "emoji": "emoji for the counter item",
+    "userEmoji": "emoji for the user’s item",
+    "reason" : "the reason why its counter in Farsi"
+    }
