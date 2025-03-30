@@ -1,13 +1,28 @@
-import { NextResponse } from 'next/server'
-import { generateText } from 'ai'
-import { deepseek } from '@ai-sdk/deepseek'
+import { NextResponse } from "next/server";
+import { generateText } from "ai";
+import { deepseek } from "@ai-sdk/deepseek";
+import Redis from "ioredis";
 
+let redis: Redis | null = null;
+
+if (process.env.REDIS_URL) {
+  redis = new Redis(process.env.REDIS_URL);
+}
 export async function POST(request: Request) {
   try {
-    const { userItem } = await request.json()
+    const { userItem } = await request.json();
 
-    if (!userItem || typeof userItem !== 'string') {
-      return NextResponse.json({ error: 'Invalid input. Please provide a userItem string.' }, { status: 400 })
+    if (!userItem || typeof userItem !== "string") {
+      return NextResponse.json(
+        { error: "Invalid input. Please provide a userItem string." },
+        { status: 400 }
+      );
+    }
+    if (redis) {
+      const cached = await redis.get(userItem);
+      if (cached) {
+        return NextResponse.json(JSON.parse(cached));
+      }
     }
 
     const prompt = `You are a creative game engine for a rock-paper-scissors-style game with weird and imaginative items.
@@ -33,20 +48,23 @@ JSON format:
 }
 
 User item: ${userItem}
-`
+`;
 
     const { text } = await generateText({
-      model: deepseek('deepseek-chat'),
-      
-      prompt,
-      
-    })
-   console.log(text)
-    const json = JSON.parse(text)
+      model: deepseek("deepseek-chat"),
 
-    return NextResponse.json(json)
+      prompt,
+    });
+    console.log(text);
+    const json = JSON.parse(text);
+    if (redis) await redis.set(userItem, JSON.stringify(json));
+
+    return NextResponse.json(json);
   } catch (error) {
-    console.error('Error using DeepSeek AI:', error)
-    return NextResponse.json({ error: 'Failed to process request.' }, { status: 500 })
+    console.error("Error using DeepSeek AI:", error);
+    return NextResponse.json(
+      { error: "Failed to process request." },
+      { status: 500 }
+    );
   }
 }
