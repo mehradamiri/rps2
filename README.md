@@ -35,7 +35,7 @@ The API route is located at /api/rps. It expects a POST request with JSON data c
 •	userEmoji: An emoji representing the user’s item.
 •	reason: A short explanation in Farsi of why the counter item wins.
 
-demo : https://rps-ivory.vercel.app
+demo : https://rps-ai.vercel.app/
 
 license
 
